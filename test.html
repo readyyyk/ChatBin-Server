@@ -9,11 +9,18 @@
 </head>
 <body>
 
-    <script defer>
+<form>
+    <input type="text" id="msg">
+    <button type="submit">Submit</button>
+</form>
+
+    <script src="./SocketApi.js"></script>
+    <script>
         const socket = new WebSocket("ws://localhost:3001/ws?room=123")
-        socket.onmessage = (event) => console.log("Got from server: " + event.data)
+        const socketApi = SocketApi(socket)
+        socket.onmessage = (event) => console.log("Got from server: ", JSON.parse(event.data))
         socket.onopen = function(){
-            socket.send("test")
+            socketApi.emit("connection", {type: "trying to connect"})
             // setTimeout(()=>socket.close(), 100)
         }
         socket.onclose = (e) => console.log(e)

@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -37,8 +36,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func logError(err string) {
-	fmt.Println(text.FgRed.Sprintf("[ERROR] - %s", err))
-	panic(err)
+	panic(text.FgRed.Sprintf("[ERROR] - %s", err))
 }
 func logSuccess(who string, data string) {
 	fmt.Println(text.FgGreen.Sprintf("[%s] - %s", who, data))
@@ -55,55 +53,11 @@ func checkError(err error) bool {
 	return false
 }
 
-func wsReader(conn *websocket.Conn) {
-	for {
-		event, data, err := conn.ReadMessage()
-		if websocket.IsCloseError(err, 1001, 1005) {
-			logSuccess("WS", err.Error())
-			return
-		}
-		if checkError(err) {
-			logWarning("WS", err.Error())
-		}
-		logSuccess("WS", "event: "+strconv.Itoa(event)+" "+string(data))
-		err = conn.WriteMessage(event, data)
-		if checkError(err) {
-			return
-		}
-	}
-}
-
 func main() {
 	err := godotenv.Load()
 	checkError(err)
 
-	http.HandleFunc("/ws", func(res http.ResponseWriter, req *http.Request) {
-		logSuccess("HTTP", "Got request on "+req.URL.String())
-
-		//getting room id
-		if !req.URL.Query().Has("room") {
-			res.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		roomId := req.URL.Query().Get("room")
-
-		// creating WS connection
-		conn, err := upgrader.Upgrade(res, req, nil)
-		if checkError(err) {
-			res.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		if rooms[roomId] == nil {
-			rooms[roomId] = &Room{
-				Clients:        make(map[*websocket.Conn]bool),
-				MessageChannel: make(chan Message),
-			}
-		}
-		rooms[roomId].Clients[conn] = true
-
-		go wsReader(conn)
-	})
+	http.HandleFunc("/ws", wsHandler)
 
 	http.HandleFunc("/newchat", func(res http.ResponseWriter, req *http.Request) {
 		rand.Seed(time.Now().UnixNano())
