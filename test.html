@@ -9,22 +9,15 @@
 </head>
 <body>
 
-<form>
-    <input type="text" id="msg">
-    <button type="submit">Submit</button>
-</form>
-
-    <script src="./SocketApi.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/readyyyk/SocketApi/SocketApi.min.js"></script>
     <script>
-        const socket = new WebSocket("ws://localhost:3001/ws?room=123")
-        const socketApi = SocketApi(socket)
-        socket.onmessage = (event) => console.log("Got from server: ", JSON.parse(event.data))
-        socket.onopen = function(){
-            socketApi.emit("connection", {type: "trying to connect"})
-            // setTimeout(()=>socket.close(), 100)
-        }
-        socket.onclose = (e) => console.log(e)
+        const socket = new SocketApi('ws://localhost:3001/ws?room=123')
+
+        socket.emit("connection", {detail: "trying to connect"})
+        socket.emit("smth", {complexity: 3, innerData: {field1: true, field2: ["a", "b", "c"]}})
+
+        socket.on("connection", e=>console.log(e))
+        socket.on("smth", e=>console.log(e))
     </script>
 </body>
 </html>
-
