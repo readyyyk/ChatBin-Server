@@ -7,19 +7,28 @@ import (
 	"github.com/readyyyk/chatbin-server/pkg/types"
 )
 
-func ConnectionRequestHandler(dataJSON string, conn *websocket.Conn) {
-	logs.LogWarning("WS", "Not implemented func for event `connection`")
-
+func ConnectionRequestHandler(dataJSON string, conn *websocket.Conn, room *types.Room) {
 	var data types.ConnectionDataS
 	err := json.Unmarshal([]byte(dataJSON), &data)
 	logs.CheckError(err)
+
+	if data.Detail == "connected" {
+		if data.Name == "" {
+			panic("data.Name is empty string in ConnectionRequestHandler")
+		}
+		room.Clients[conn] = data.Name
+		return
+	}
 
 	dataToWrite, _ := json.Marshal(types.FetchedDataS{
 		Event: "connection",
 		Data:  dataJSON,
 	})
-	err = conn.WriteMessage(1, dataToWrite)
-	if logs.CheckError(err) {
-		return
+
+	for clientConn := range room.Clients {
+		err = clientConn.WriteMessage(1, dataToWrite)
+		if logs.CheckError(err) {
+			return
+		}
 	}
 }

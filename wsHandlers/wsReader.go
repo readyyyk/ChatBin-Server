@@ -2,6 +2,7 @@ package wsHandlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/readyyyk/chatbin-server/pkg/logs"
 	"github.com/readyyyk/chatbin-server/pkg/types"
@@ -19,10 +20,12 @@ func WsReader(conn *websocket.Conn, room *types.Room) {
 	for {
 		//getting message from connection
 		event, data, err := conn.ReadMessage()
+		fmt.Println()
 		logs.LogSuccess("WS", "event: "+strconv.Itoa(event)+" "+string(data))
 
 		// handle exit codes and errors
 		if event == -1 || websocket.IsCloseError(err, closeCodes...) {
+			delete(room.Clients, conn)
 			logs.LogSuccess("WS", err.Error())
 			return
 		}
@@ -45,7 +48,7 @@ func WsReader(conn *websocket.Conn, room *types.Room) {
 		// calling needed function based on event name we got
 		switch fetchedData.Event {
 		case "connection":
-			ConnectionRequestHandler(fetchedData.Data, conn)
+			ConnectionRequestHandler(fetchedData.Data, conn, room)
 			break
 		default:
 			// TODO: REPLACE WITH ERROR MESSAGE
@@ -60,5 +63,6 @@ func WsReader(conn *websocket.Conn, room *types.Room) {
 			}
 			break
 		}
+		fmt.Println()
 	}
 }

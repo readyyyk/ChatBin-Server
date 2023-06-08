@@ -11,13 +11,34 @@
 
     <script src="https://cdn.jsdelivr.net/gh/readyyyk/SocketApi/SocketApi.min.js"></script>
     <script>
-        const socket = new SocketApi('ws://localhost:3001/ws?room=123')
+        const ROOM = "TROOM"
+        const socket = new SocketApi(`ws://localhost:3001/${ROOM}/ws`)
+
+        socket.addDataChecker("connection", ()=>true)
 
         socket.emit("connection", {detail: "trying to connect"})
-        socket.emit("smth", {complexity: 3, innerData: {field1: true, field2: ["a", "b", "c"]}})
+        // socket.emit("smth", {complexity: 3, innerData: {field1: true, field2: ["a", "b", "c"]}})
 
-        socket.on("connection", e=>console.log(e))
+        socket.on("connection", e=> {
+            console.log(e)
+            if(e.detail === "trying to connect")
+                document.body.innerHTML = document.body.innerHTML + "<p>smb trying to connect...<p>"
+            else if (e.detail === "connected")
+                document.body.innerHTML = document.body.innerHTML + `<h4>${e.name} connected</h4>`
+        })
         socket.on("smth", e=>console.log(e))
+
+        function enterName(){
+            const name = prompt("Name to connect")
+            fetch(`http://localhost:3001/${ROOM}/names?name=${name}`)
+                .then(data => {
+                    if(!data.ok)
+                        enterName()
+
+                    socket.emit("connection", {detail: "connected", name: name})
+                })
+        }
+        enterName()
     </script>
 </body>
 </html>

@@ -11,7 +11,7 @@ type Message struct {
 	Type   string `json:"type"`
 }
 type Room struct {
-	Clients        map[*websocket.Conn]bool
+	Clients        map[*websocket.Conn]string
 	MessageChannel chan WSMessage
 }
 
@@ -27,6 +27,7 @@ type FetchedDataS struct {
 
 type ConnectionDataS struct {
 	Detail string `json:"detail"` // "trying to connect", "connected", "disconnected"
+	Name   string `json:"name"`
 }
 type MessageDataS struct {
 	Sender string `json:"sender"`

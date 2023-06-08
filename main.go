@@ -1,37 +1,30 @@
 package main
 
 import (
-	"fmt"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/readyyyk/chatbin-server/httpHandlers"
 	"github.com/readyyyk/chatbin-server/pkg/logs"
-	"math/rand"
-	"net/http"
 	"os"
-	"time"
 )
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-// Starting http server and http routes
+// Starting gin server, http routes, cors policy
 func main() {
 	err := godotenv.Load()
 	logs.CheckError(err)
 
-	http.HandleFunc("/ws", httpHandlers.WsHttpHandler)
+	server := gin.Default()
+	server.Use(cors.New(cors.Config{
+		AllowAllOrigins:  true,
+		AllowCredentials: true,
+	}))
 
-	http.HandleFunc("/newchat", func(res http.ResponseWriter, req *http.Request) {
-		rand.Seed(time.Now().UnixNano())
-		rand.Shuffle(len(letters), func(i, j int) {
-			letters[i], letters[j] = letters[j], letters[i]
-		})
-		newId := letters[:5]
-		fmt.Println(string(newId))
+	server.GET("/:chat/ws", httpHandlers.WsHttpHandler)
+	server.GET("/newchat", httpHandlers.NewchatHttpHandler)
+	server.GET("/:chat/names", httpHandlers.NameHttpHandler)
 
-		http.Redirect(res, req, "/"+string(newId), http.StatusSeeOther)
-	})
-
-	logs.LogSuccess("SERVER", "Trying to listen on :"+os.Getenv("PORT"))
-	err = http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	//logs.LogSuccess("SERVER", "Trying to listen on :"+os.Getenv("PORT"))
+	err = server.Run(":" + os.Getenv("PORT"))
 	logs.CheckError(err)
 }

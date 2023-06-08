@@ -1,6 +1,7 @@
 package httpHandlers
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/readyyyk/chatbin-server/pkg/logs"
 	"github.com/readyyyk/chatbin-server/pkg/types"
@@ -25,31 +26,30 @@ requires `room` in url query
 
 runs wsReader to handle WS queries
 */
-func WsHttpHandler(res http.ResponseWriter, req *http.Request) {
-	logs.LogSuccess("HTTP", "Got request on "+req.URL.String())
+func WsHttpHandler(c *gin.Context) {
+	logs.LogSuccess("HTTP", "Got request on "+c.Request.URL.String())
 
 	//getting room id
-	if !req.URL.Query().Has("room") {
-		res.WriteHeader(http.StatusBadRequest)
+	roomId := c.Param("chat")
+	if roomId == "" {
+		c.Status(http.StatusBadRequest)
 		return
 	}
-	roomId := req.URL.Query().Get("room")
 
 	// creating WS connection
-	conn, err := upgrader.Upgrade(res, req, nil)
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if logs.CheckError(err) {
-		res.WriteHeader(http.StatusInternalServerError)
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 
 	// creating new room if provided one doesn't exist
 	if rooms[roomId] == nil {
 		rooms[roomId] = &types.Room{
-			Clients:        make(map[*websocket.Conn]bool),
+			Clients:        make(map[*websocket.Conn]string),
 			MessageChannel: make(chan types.WSMessage),
 		}
 	}
-	rooms[roomId].Clients[conn] = true
 
 	go wsHandlers.WsReader(conn, rooms[roomId])
 }
