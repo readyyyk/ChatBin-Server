@@ -5,10 +5,8 @@ import (
 )
 
 type Message struct {
-	Room   string `json:"room"`
 	Sender string `json:"sender"`
 	Text   string `json:"text"`
-	Type   string `json:"type"`
 }
 type Room struct {
 	Clients        map[*websocket.Conn]string

@@ -9,10 +9,10 @@ func LogError(err string) {
 	panic(text.FgRed.Sprintf("[ERROR] - %s", err))
 }
 func LogSuccess(who string, data string) {
-	fmt.Println(text.FgGreen.Sprintf("[%s] - %s", who, data))
+	fmt.Println(text.BgGreen.Sprintf("[%s]", who) + " " + data)
 }
 func LogWarning(who string, data string) {
-	fmt.Println(text.FgYellow.Sprintf("[%s] - %s", who, data))
+	fmt.Println(text.BgYellow.Sprintf("[%s]", who) + " " + data)
 }
 
 func CheckError(err error) bool {

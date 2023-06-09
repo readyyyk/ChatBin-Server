@@ -2,7 +2,6 @@ package wsHandlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/readyyyk/chatbin-server/pkg/logs"
 	"github.com/readyyyk/chatbin-server/pkg/types"
@@ -20,13 +19,14 @@ func WsReader(conn *websocket.Conn, room *types.Room) {
 	for {
 		//getting message from connection
 		event, data, err := conn.ReadMessage()
-		fmt.Println()
 		logs.LogSuccess("WS", "event: "+strconv.Itoa(event)+" "+string(data))
 
 		// handle exit codes and errors
 		if event == -1 || websocket.IsCloseError(err, closeCodes...) {
-			delete(room.Clients, conn)
-			logs.LogSuccess("WS", err.Error())
+			ConnectionRequestHandler(
+				"{\"detail\":\"disconnected\",\"name\":\""+room.Clients[conn]+"\"}",
+				conn, room,
+			)
 			return
 		}
 		if err != nil {
@@ -50,19 +50,16 @@ func WsReader(conn *websocket.Conn, room *types.Room) {
 		case "connection":
 			ConnectionRequestHandler(fetchedData.Data, conn, room)
 			break
-		default:
-			// TODO: REPLACE WITH ERROR MESSAGE
-			//room.MessageChannel <- types.WSMessage{
-			//	Event: event,
-			//	Data:  data,
-			//}
-			logs.LogWarning("WS", "No such event: "+fetchedData.Event)
-			err = conn.WriteMessage(event, data)
-			if logs.CheckError(err) {
-				return
-			}
+		case "message":
+			MessageRequestHandler(fetchedData.Data, conn, room)
 			break
+		default:
+			logs.LogWarning("WS", "No such event: "+fetchedData.Event)
+			messageBytes, _ := json.Marshal(types.ErrorMessage{
+				Code:        404,
+				Description: "Undefined event name",
+			})
+			logs.CheckError(conn.WriteMessage(-1, messageBytes))
 		}
-		fmt.Println()
 	}
 }

@@ -23,8 +23,7 @@ func main() {
 	server.GET("/:chat/ws", httpHandlers.WsHttpHandler)
 	server.GET("/newchat", httpHandlers.NewchatHttpHandler)
 	server.GET("/:chat/names", httpHandlers.NameHttpHandler)
-
-	//logs.LogSuccess("SERVER", "Trying to listen on :"+os.Getenv("PORT"))
+	
 	err = server.Run(":" + os.Getenv("PORT"))
 	logs.CheckError(err)
 }

@@ -17,7 +17,8 @@ func ConnectionRequestHandler(dataJSON string, conn *websocket.Conn, room *types
 			panic("data.Name is empty string in ConnectionRequestHandler")
 		}
 		room.Clients[conn] = data.Name
-		return
+	} else if data.Detail == "disconnected" {
+		delete(room.Clients, conn)
 	}
 
 	dataToWrite, _ := json.Marshal(types.FetchedDataS{
@@ -27,8 +28,6 @@ func ConnectionRequestHandler(dataJSON string, conn *websocket.Conn, room *types
 
 	for clientConn := range room.Clients {
 		err = clientConn.WriteMessage(1, dataToWrite)
-		if logs.CheckError(err) {
-			return
-		}
+		logs.CheckError(err)
 	}
 }

@@ -21,14 +21,10 @@ var upgrader = websocket.Upgrader{
 
 /*
 WsHttpHandler handles requests on /ws route
-
-requires `room` in url query
-
-runs wsReader to handle WS queries
+ 1. requires `room` in url query
+ 2. runs wsReader to handle WS queries
 */
 func WsHttpHandler(c *gin.Context) {
-	logs.LogSuccess("HTTP", "Got request on "+c.Request.URL.String())
-
 	//getting room id
 	roomId := c.Param("chat")
 	if roomId == "" {
