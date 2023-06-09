@@ -20,7 +20,7 @@ jobs:
 
     - name: Build
       run: |
-        go get -d .
+        go mod tidy
         go build . -o cmd/server
       
     - name: Commit
