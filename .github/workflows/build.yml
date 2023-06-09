@@ -20,8 +20,7 @@ jobs:
 
     - name: Build
       run: |
-        go mod tidy
-        go build . -o cmd/server
+        go build -v -o cmd/server
       
     - name: Commit
       run: |
