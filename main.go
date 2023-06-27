@@ -23,7 +23,9 @@ func main() {
 	server.GET("/:chat/ws", httpHandlers.WsHttpHandler)
 	server.GET("/newchat", httpHandlers.NewchatHttpHandler)
 	server.GET("/:chat/names", httpHandlers.NameHttpHandler)
-	
+
+	server.Static("/test", "./testPage")
+
 	err = server.Run(":" + os.Getenv("PORT"))
 	logs.CheckError(err)
 }
