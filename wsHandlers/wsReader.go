@@ -48,10 +48,10 @@ func WsReader(conn *websocket.Conn, room *types.Room) {
 		// calling needed function based on event name we got
 		switch fetchedData.Event {
 		case "connection":
-			ConnectionRequestHandler(fetchedData.Data, conn, room)
+			go ConnectionRequestHandler(fetchedData.Data, conn, room)
 			break
 		case "message":
-			MessageRequestHandler(fetchedData.Data, conn, room)
+			go MessageRequestHandler(fetchedData.Data, conn, room)
 			break
 		default:
 			logs.LogWarning("WS", "No such event: "+fetchedData.Event)
@@ -59,7 +59,7 @@ func WsReader(conn *websocket.Conn, room *types.Room) {
 				Code:        404,
 				Description: "Undefined event name",
 			})
-			logs.CheckError(conn.WriteMessage(-1, messageBytes))
+			logs.CheckError(conn.WriteMessage(websocket.TextMessage, messageBytes))
 		}
 	}
 }

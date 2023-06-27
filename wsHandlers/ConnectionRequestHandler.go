@@ -10,11 +10,17 @@ import (
 func ConnectionRequestHandler(dataJSON string, conn *websocket.Conn, room *types.Room) {
 	var data types.ConnectionDataS
 	err := json.Unmarshal([]byte(dataJSON), &data)
-	logs.CheckError(err)
+	if err != nil {
+		dataToWrite, _ := json.Marshal(types.ErrorMessage{
+			Code:        400,
+			Description: "Invalid data in connection handler",
+		})
+		_ = conn.WriteMessage(websocket.TextMessage, dataToWrite)
+	}
 
 	if data.Detail == "connected" {
 		if data.Name == "" {
-			panic("data.Name is empty string in ConnectionRequestHandler")
+			logs.LogError("data.Name is empty string in ConnectionRequestHandler")
 		}
 		room.Clients[conn] = data.Name
 	} else if data.Detail == "disconnected" {
@@ -28,6 +34,8 @@ func ConnectionRequestHandler(dataJSON string, conn *websocket.Conn, room *types
 
 	for clientConn := range room.Clients {
 		err = clientConn.WriteMessage(1, dataToWrite)
-		logs.CheckError(err)
+		if err != nil {
+			logs.LogWarning("WS", err.Error())
+		}
 	}
 }
