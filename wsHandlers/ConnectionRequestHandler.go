@@ -18,6 +18,8 @@ func ConnectionRequestHandler(dataJSON string, conn *websocket.Conn, room *types
 		_ = conn.WriteMessage(websocket.TextMessage, dataToWrite)
 	}
 
+	isSkipSender := false
+
 	if data.Detail == "connected" {
 		if data.Name == "" {
 			logs.LogError("data.Name is empty string in ConnectionRequestHandler")
@@ -26,19 +28,21 @@ func ConnectionRequestHandler(dataJSON string, conn *websocket.Conn, room *types
 	} else if data.Detail == "disconnected" {
 		delete(room.Clients, conn)
 	} else if data.Detail == "trying to connect" {
-		dataToWrite, _ := json.Marshal(types.FetchedDataS{
-			Event: "connection",
-			Data:  dataJSON,
-		})
+		isSkipSender = true
+	}
 
-		for clientConn := range room.Clients {
-			if clientConn == conn {
-				continue
-			}
-			err = clientConn.WriteMessage(1, dataToWrite)
-			if err != nil {
-				logs.LogWarning("WS", err.Error())
-			}
+	dataToWrite, _ := json.Marshal(types.FetchedDataS{
+		Event: "connection",
+		Data:  dataJSON,
+	})
+
+	for clientConn := range room.Clients {
+		if isSkipSender && clientConn == conn {
+			continue
+		}
+		err = clientConn.WriteMessage(1, dataToWrite)
+		if err != nil {
+			logs.LogWarning("WS", err.Error())
 		}
 	}
 }
