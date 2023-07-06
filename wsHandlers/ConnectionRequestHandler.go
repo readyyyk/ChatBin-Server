@@ -25,17 +25,20 @@ func ConnectionRequestHandler(dataJSON string, conn *websocket.Conn, room *types
 		room.Clients[conn] = data.Name
 	} else if data.Detail == "disconnected" {
 		delete(room.Clients, conn)
-	}
+	} else if data.Detail == "trying to connect" {
+		dataToWrite, _ := json.Marshal(types.FetchedDataS{
+			Event: "connection",
+			Data:  dataJSON,
+		})
 
-	dataToWrite, _ := json.Marshal(types.FetchedDataS{
-		Event: "connection",
-		Data:  dataJSON,
-	})
-
-	for clientConn := range room.Clients {
-		err = clientConn.WriteMessage(1, dataToWrite)
-		if err != nil {
-			logs.LogWarning("WS", err.Error())
+		for clientConn := range room.Clients {
+			if clientConn == conn {
+				continue
+			}
+			err = clientConn.WriteMessage(1, dataToWrite)
+			if err != nil {
+				logs.LogWarning("WS", err.Error())
+			}
 		}
 	}
 }

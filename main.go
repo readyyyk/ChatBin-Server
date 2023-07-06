@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/readyyyk/chatbin-server/httpHandlers"
 	"github.com/readyyyk/chatbin-server/pkg/logs"
 	"os"
@@ -11,8 +10,8 @@ import (
 
 // Starting gin server, http routes, cors policy
 func main() {
-	err := godotenv.Load()
-	logs.CheckError(err)
+	// err := godotenv.Load()
+	// logs.CheckError(err)
 
 	server := gin.Default()
 	server.Use(cors.New(cors.Config{
@@ -26,6 +25,6 @@ func main() {
 
 	server.Static("/test", "./testPage")
 
-	err = server.Run(":" + os.Getenv("PORT"))
+	err := server.Run(":" + os.Getenv("PORT"))
 	logs.CheckError(err)
 }
