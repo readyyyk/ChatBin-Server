@@ -10,8 +10,8 @@ import (
 
 // Starting gin server, http routes, cors policy
 func main() {
-	// err := godotenv.Load()
-	// logs.CheckError(err)
+	//err := godotenv.Load()
+	//logs.CheckError(err)
 
 	server := gin.Default()
 	server.Use(cors.New(cors.Config{
@@ -20,7 +20,8 @@ func main() {
 	}))
 
 	server.GET("/:chat/ws", httpHandlers.WsHttpHandler)
-	server.GET("/:chat/names", httpHandlers.NameHttpHandler)
+	server.GET("/:chat/check", httpHandlers.CheckNameHttpHandler)
+	server.GET("/:chat/names", httpHandlers.NamesHttpHandler)
 
 	server.Static("/test", "./testPage")
 
